@@ -7,7 +7,7 @@ from langchain_community.vectorstores import FAISS
 
 
 def initialize_sales_bot(vector_store_dir: str="real_estates_sale"):
-    db = FAISS.load_local(vector_store_dir, OpenAIEmbeddings())
+    db = FAISS.load_local(vector_store_dir, OpenAIEmbeddings(), allow_dangerous_deserialization=True)
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
     
     global SALES_BOT    
@@ -24,14 +24,19 @@ def sales_chat(message, history):
     print(f"[history]{history}")
     # TODO: 从命令行参数中获取
     enable_chat = True
-
+    keywords= ["AI", "ai", "Ai", "aI", "人工智能", "chatgpt"]
     ans = SALES_BOT({"query": message})
     # 如果检索出结果，或者开了大模型聊天模式
     # 返回 RetrievalQA combine_documents_chain 整合的结果
-    if ans["source_documents"] or enable_chat:
+    if ans["source_documents"]:
         print(f"[result]{ans['result']}")
         print(f"[source_documents]{ans['source_documents']}")
         return ans["result"]
+    elif enable_chat:
+        for keywords in keywords:
+            if keywords in message:
+                return "抱歉，这不是我擅长的领域，无法回答您的问题。"
+        return SALES_BOT.llm(message)
     # 否则输出套路话术
     else:
         return "这个问题我要问问领导"

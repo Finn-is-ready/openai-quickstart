@@ -28,15 +28,17 @@ def sales_chat(message, history):
     ans = SALES_BOT({"query": message})
     # 如果检索出结果，或者开了大模型聊天模式
     # 返回 RetrievalQA combine_documents_chain 整合的结果
+    flag = False
+    for keywords in keywords:
+        if keywords in message:
+            flag = True
     if ans["source_documents"]:
         print(f"[result]{ans['result']}")
         print(f"[source_documents]{ans['source_documents']}")
         return ans["result"]
-    elif enable_chat:
-        for keywords in keywords:
-            if keywords in message:
-                return "抱歉，我是一位销售，并不了解您提到的概念，也不是您认为的机器或AI。"
-        return SALES_BOT.llm(message)
+    elif enable_chat and flag:
+        flag = False
+        return "抱歉，我是一位销售，并不了解您提到的概念，也不是您认为的机器或AI。"
     # 否则输出套路话术
     else:
         return "抱歉，这方面知识我并不了解，无法回答您的问题。"
@@ -45,7 +47,7 @@ def sales_chat(message, history):
 def launch_gradio():
     demo = gr.ChatInterface(
         fn=sales_chat,
-        title="房产销售",
+        title="汽车销售",
         # retry_btn=None,
         # undo_btn=None,
         chatbot=gr.Chatbot(height=600),
@@ -54,7 +56,7 @@ def launch_gradio():
     demo.launch(share=True, server_name="0.0.0.0")
 
 if __name__ == "__main__":
-    # 初始化房产销售机器人
+    # 初始化销售机器人
     initialize_sales_bot()
     # 启动 Gradio 服务
     launch_gradio()
